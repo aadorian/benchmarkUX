@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FindAPaw — Find your new best friend</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #FAF3E3;
+    --bg-alt: #F5EAD0;
+    --fg: #2B1810;
+    --muted: #6B5444;
+    --accent: #D2603A;
+    --accent-dark: #B14A28;
+    --accent-light: #F4D4C2;
+    --secondary: #3D5A3D;
+    --card: #FFFFFF;
+    --border: #E8D9B8;
+  }
+  * { -webkit-font-smoothing: antialiased; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
+  }
+  .font-display { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+
+  /* Floating paws background */
+  .paw-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .paw {
+    position: absolute;
+    color: var(--accent);
+    opacity: 0;
+    animation: float-paw 22s linear infinite;
+  }
+  @keyframes float-paw {
+    0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.08; }
+    90% { opacity: 0.08; }
+    100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Hero blob morph */
+  .hero-blob {
+    border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+    animation: morph 14s ease-in-out infinite;
+  }
+  @keyframes morph {
+    0%, 100% { border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%; }
+    50% { border-radius: 40% 60% 70% 30% / 50% 60% 40% 50%; }
+  }
+
+  /* Pet cards */
+  .pet-card { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s; }
+  .pet-card:hover { transform: translateY(-8px); box-shadow: 0 24px 48px -12px rgba(43,24,16,0.18); }
+  .pet-img { transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+  .pet-card:hover .pet-img { transform: scale(1.08); }
+  .pet-img-wrap { position: relative; overflow: hidden; }
+  .pet-img-wrap::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(43,24,16,0.45) 100%);
+    pointer-events: none;
+  }
+
+  /* Primary button with sliding fill */
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    transition: transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--accent-dark);
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-primary:hover::before { transform: translateX(0); }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-primary > span { position: relative; z-index: 1; }
+
+  /* Form inputs */
+  .form-input {
+    background: white;
+    border: 2px solid var(--border);
+    transition: border-color 0.3s, box-shadow 0.3s;
+    font-family: inherit;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(210, 96, 58, 0.12);
+  }
+  .form-input::placeholder { color: #B8A88E; }
+
+  /* Home type radios */
+  .home-option { cursor: pointer; }
+  .home-option input:checked + .home-card {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -8px rgba(210,96,58,0.4);
+  }
+  .home-option input:checked + .home-card .home-icon {
+    background: var(--accent);
+    color: white;
+  }
+  .home-card {
+    border: 2px solid var(--border);
+    transition: all 0.3s;
+    background: white;
+  }
+  .home-icon { transition: all 0.3s; }
+
+  /* Reveal on scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.9s cubic-bezier(0.4,0,0.2,1), transform 0.9s cubic-bezier(0.4,0,0.2,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Soft pulse */
+  @keyframes pulse-soft {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+  }
+  .pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+  /* Stat counter */
+  .stat-number { font-variant-numeric: tabular-nums; }
+
+  /* Paw divider */
+  .paw-divider { display: flex; align-items: center; gap: 1rem; color: var(--accent); }
+  .paw-divider::before, .paw-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    background: var(--secondary);
+    color: white;
+    padding: 1.25rem 1.75rem;
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+    transform: translateY(140%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10000;
+    max-width: 360px;
+  }
+  .toast.show { transform: translateY(0); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-alt); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 5px; }
+
+  /* Underline draw */
+  .underline-draw { position: relative; display: inline-block; }
+  .underline-draw::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0;
+    width: 100%; height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .underline-draw:hover::after { transform: scaleX(1); }
+
+  /* Marquee */
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee-track { animation: marquee 35s linear infinite; }
+
+  /* Fade in up for cards */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Cursor paw */
+  .cursor-paw {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.6s, transform 0.6s;
+  }
+
+  /* Grain texture overlay */
+  .grain::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: multiply;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body class="grain">
+
+<!-- Floating paws background -->
+<div class="paw-bg" id="pawBg"></div>
+
+<!-- Navigation -->
+<header class="sticky top-0 z-50 backdrop-blur-md bg-[var(--bg)]/80 border-b border-[var(--border)]">
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]">
+        <path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/>
+      </svg>
+      <span class="font-display text-2xl font-bold tracking-tight">FindAPaw</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#pets" class="text-sm font-medium hover:text-[var(--accent)] transition underline-draw">Meet Pets</a>
+      <a href="#how" class="text-sm font-medium hover:text-[var(--accent)] transition underline-draw">How it Works</a>
+      <a href="#stories" class="text-sm font-medium hover:text-[var(--accent)] transition underline-draw">Stories</a>
+      <a href="#adopt" class="text-sm font-medium hover:text-[var(--accent)] transition underline-draw">Adopt</a>
+    </div>
+    <a href="#adopt" class="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold">
+      <span>Start Adoption</span>
+    </a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="relative pt-16 pb-20 px-6 z-10">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent-light)] rounded-full mb-6 border border-[var(--accent)]/20">
+        <span class="relative flex w-2 h-2">
+          <span class="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75 pulse-soft"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
+        </span>
+        <span class="text-sm font-medium text-[var(--accent-dark)]">2,438 pets looking for homes today</span>
+      </div>
+
+      <h1 class="font-display text-6xl md:text-7xl lg:text-8xl font-bold leading-[0.92] tracking-tight mb-6">
+        Find your<br>
+        new <em class="text-[var(--accent)] italic font-light">best friend.</em>
+      </h1>
+
+      <p class="text-lg text-[var(--muted)] max-w-md mb-8 leading-relaxed">
+        Every paw in our care has a story. Browse thousands of adoptable pets from shelters near you and bring home a companion who's been waiting.
+      </p>
+
+      <div class="flex flex-wrap gap-4">
+        <a href="#pets" class="btn-primary px-7 py-4 rounded-full font-semibold">
+          <span class="flex items-center gap-2">Browse Pets <i class="fas fa-arrow-right text-sm"></i></span>
+        </a>
+        <a href="#how" class="px-7 py-4 rounded-full font-semibold border-2 border-[var(--fg)] hover:bg-[var(--fg)] hover:text-white transition">
+          How it Works
+        </a>
+      </div>
+
+      <div class="mt-12 flex gap-8">
+        <div>
+          <div class="font-display text-3xl font-bold stat-number" data-target="12847">0</div>
+          <div class="text-xs uppercase tracking-wider text-[var(--muted)] mt-1">Pets Adopted</div>
+        </div>
+        <div class="border-l border-[var(--border)] pl-8">
+          <div class="font-display text-3xl font-bold stat-number" data-target="312">0</div>
+          <div class="text-xs uppercase tracking-wider text-[var(--muted)] mt-1">Shelter Partners</div>
+        </div>
+        <div class="border-l border-[var(--border)] pl-8">
+          <div class="font-display text-3xl font-bold stat-number" data-target="98">0</div>
+          <div class="text-xs uppercase tracking-wider text-[var(--muted)] mt-1">% Satisfaction</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative">
+      <div class="relative hero-blob overflow-hidden shadow-2xl aspect-square">
+        <img src="https://picsum.photos/seed/goldenpup2024/900/900.jpg" alt="Adoptable dog" class="w-full h-full object-cover">
+      </div>
+
+      <div class="absolute -left-6 top-12 bg-white rounded-2xl shadow-xl p-4 max-w-[210px] border border-[var(--border)]">
+        <div class="flex items-center gap-3">
+          <img src="https://picsum.photos/seed/shelterport/100/100.jpg" alt="" class="w-12 h-12 rounded-full object-cover">
+          <div>
+            <div class="font-semibold text-sm">Sunny Brook Shelter</div>
+            <div class="text-xs text-[var(--muted)] flex items-center gap-1">
+              <i class="fas fa-circle-check text-[var(--secondary)] text-[10px]"></i> Verified Partner
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="absolute -right-4 bottom-12 bg-white rounded-2xl shadow-xl p-4 max-w-[230px] border border-[var(--border)]">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-2 h-2 bg-[var(--secondary)] rounded-full pulse-soft"></div>
+          <span class="text-xs font-semibold text-[var(--secondary)]">Adoption Pending</span>
+        </div>
+        <div class="font-display font-bold text-lg leading-tight">Buddy found a family!</div>
+        <div class="text-xs text-[var(--muted)] mt-1">Adopted 2 hours ago · Portland</div>
+      </div>
+
+      <svg class="absolute -top-8 -right-8 w-16 h-16 text-[var(--accent)] opacity-30" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<section class="py-5 border-y border-[var(--border)] bg-[var(--bg-alt)] overflow-hidden relative z-10">
+  <div class="flex gap-8 marquee-track whitespace-nowrap items-center">
+    <span class="font-display text-2xl italic text-[var(--muted)]">— Recently adopted —</span>
+    <span class="font-display text-2xl font-bold">Bella</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Max</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Luna</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Charlie</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Daisy</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Cooper</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Ruby</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <!-- duplicate for seamless loop -->
+    <span class="font-display text-2xl italic text-[var(--muted)]">— Recently adopted —</span>
+    <span class="font-display text-2xl font-bold">Bella</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Max</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Luna</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Charlie</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Daisy</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Cooper</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+    <span class="font-display text-2xl font-bold">Ruby</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]"><path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/></svg>
+  </div>
+</section>
+
+<!-- Featured Pets -->
+<section id="pets" class="py-24 px-6 relative z-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-12 reveal">
+      <div>
+        <div class="paw-divider mb-4 max-w-xs">
+          <span class="text-xs uppercase tracking-widest font-semibold">Meet the pets</span>
+        </div>
+        <h2 class="font-display text-5xl md:text-6xl font-bold leading-none">
+          Waiting for <em class="italic font-light text-[var(--accent)]">you</em>
+        </h2>
+      </div>
+      <div class="flex gap-2">
+        <button class="filter-btn px-5 py-2.5 rounded-full bg-[var(--fg)] text-white text-sm font-medium transition" data-filter="all">All Pets</button>
+        <button class="filter-btn px-5 py-2.5 rounded-full border border-[var(--border)] text-sm font-medium hover:border-[var(--accent)] transition" data-filter="dog">Dogs</button>
+        <button class="filter-btn px-5 py-2.5 rounded-full border border-[var(--border)] text-sm font-medium hover:border-[var(--accent)] transition" data-filter="cat">Cats</button>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="petsGrid"></div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how" class="py-24 px-6 bg-[var(--bg-alt)] relative z-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <div class="paw-divider mb-4 max-w-xs mx-auto">
+        <span class="text-xs uppercase tracking-widest font-semibold">Simple Process</span>
+      </div>
+      <h2 class="font-display text-5xl md:text-6xl font-bold">Three steps to <em class="italic font-light text-[var(--accent)]">home</em></h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="reveal">
+        <div class="bg-white rounded-3xl p-8 h-full border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-xl transition">
+          <div class="flex items-center justify-between mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-[var(--accent-light)] flex items-center justify-center">
+              <i class="fas fa-magnifying-glass text-2xl text-[var(--accent)]"></i>
+            </div>
+            <span class="font-display text-6xl font-bold text-[var(--accent)] opacity-20">01</span>
+          </div>
+          <h3 class="font-display text-2xl font-bold mb-3">Browse & Connect</h3>
+          <p class="text-[var(--muted)] leading-relaxed">Filter pets by size, temperament, and lifestyle fit. Save favorites and learn each pet's unique story.</p>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay: 0.15s">
+        <div class="bg-white rounded-3xl p-8 h-full border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-xl transition">
+          <div class="flex items-center justify-between mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-[var(--accent-light)] flex items-center justify-center">
+              <i class="fas fa-handshake text-2xl text-[var(--accent)]"></i>
+            </div>
+            <span class="font-display text-6xl font-bold text-[var(--accent)] opacity-20">02</span>
+          </div>
+          <h3 class="font-display text-2xl font-bold mb-3">Meet in Person</h3>
+          <p class="text-[var(--muted)] leading-relaxed">Schedule a meet-and-greet at the partner shelter. Spend real time with your potential new family member.</p>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay: 0.3s">
+        <div class="bg-white rounded-3xl p-8 h-full border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-xl transition">
+          <div class="flex items-center justify-between mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-[var(--accent-light)] flex items-center justify-center">
+              <i class="fas fa-house-chimney-heart text-2xl text-[var(--accent)]"></i>
+            </div>
+            <span class="font-display text-6xl font-bold text-[var(--accent)] opacity-20">03</span>
+          </div>
+          <h3 class="font-display text-2xl font-bold mb-3">Welcome Home</h3>
+          <p class="text-[var(--muted)] leading-relaxed">Complete the adoption paperwork, get a starter kit, and bring your new companion home. Lifetime support included.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="py-24 px-6 bg-[var(--fg)] text-[var(--bg)] relative overflow-hidden z-10">
+  <div class="max-w-7xl mx-auto relative z-10">
+    <div class="grid md:grid-cols-4 gap-8 text-center">
+      <div class="reveal">
+        <div class="font-display text-6xl md:text-7xl font-bold text-[var(--accent)] stat-number" data-target="12847">0</div>
+        <div class="text-sm uppercase tracking-widest mt-2 opacity-70">Happy Tails</div>
+      </div>
+      <div class="reveal" style="transition-delay: 0.1s">
+        <div class="font-display text-6xl md:text-7xl font-bold text-[var(--accent)] stat-number" data-target="312">0</div>
+        <div class="text-sm uppercase tracking-widest mt-2 opacity-70">Partner Shelters</div>
+      </div>
+      <div class="reveal" style="transition-delay: 0.2s">
+        <div class="font-display text-6xl md:text-7xl font-bold text-[var(--accent)] stat-number" data-target="48">0</div>
+        <div class="text-sm uppercase tracking-widest mt-2 opacity-70">States Covered</div>
+      </div>
+      <div class="reveal" style="transition-delay: 0.3s">
+        <div class="font-display text-6xl md:text-7xl font-bold text-[var(--accent)] stat-number" data-target="7">0</div>
+        <div class="text-sm uppercase tracking-widest mt-2 opacity-70">Years of Service</div>
+      </div>
+    </div>
+  </div>
+  <svg class="absolute top-10 left-10 w-24 h-24 opacity-10" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/>
+  </svg>
+  <svg class="absolute bottom-10 right-10 w-32 h-32 opacity-10" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/>
+  </svg>
+</section>
+
+<!-- Stories -->
+<section id="stories" class="py-24 px-6 relative z-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-12 reveal">
+      <div>
+        <div class="paw-divider mb-4 max-w-xs">
+          <span class="text-xs uppercase tracking-widest font-semibold">Success Stories</span>
+        </div>
+        <h2 class="font-display text-5xl md:text-6xl font-bold leading-none">
+          Families <em class="italic font-light text-[var(--accent)]">found</em>
+        </h2>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="reveal bg-white rounded-3xl overflow-hidden border border-[var(--border)] hover:shadow-xl transition">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/familymochi/600/450.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition duration-700">
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-1 text-[var(--accent)] mb-3">
+            <i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i>
+          </div>
+          <p class="font-display text-lg leading-snug mb-4">"We met Mochi through FindAPaw and she's been our shadow ever since. The process felt personal, not transactional."</p>
+          <div class="flex items-center gap-3">
+            <img src="https://picsum.photos/seed/person1port/80/80.jpg" alt="" class="w-10 h-10 rounded-full object-cover">
+            <div>
+              <div class="font-semibold text-sm">Sarah & James</div>
+              <div class="text-xs text-[var(--muted)]">Adopted Mochi · 8 months ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal bg-white rounded-3xl overflow-hidden border border-[var(--border)] hover:shadow-xl transition" style="transition-delay: 0.1s">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/familybailey/600/450.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition duration-700">
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-1 text-[var(--accent)] mb-3">
+            <i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i>
+          </div>
+          <p class="font-display text-lg leading-snug mb-4">"Our kids named him Bailey within an hour. The shelter team matched us perfectly with a dog who loves chaos as much as we do."</p>
+          <div class="flex items-center gap-3">
+            <img src="https://picsum.photos/seed/person2port/80/80.jpg" alt="" class="w-10 h-10 rounded-full object-cover">
+            <div>
+              <div class="font-semibold text-sm">The Martinez Family</div>
+              <div class="text-xs text-[var(--muted)]">Adopted Bailey · 1 year ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal bg-white rounded-3xl overflow-hidden border border-[var(--border)] hover:shadow-xl transition" style="transition-delay: 0.2s">
+        <div class="aspect-[4/3] overflow-hidden">
+          <img src="https://picsum.photos/seed/familypip/600/450.jpg" alt="" class="w-full h-full object-cover hover:scale-105 transition duration-700">
+        </div>
+        <div class="p-6">
+          <div class="flex items-center gap-1 text-[var(--accent)] mb-3">
+            <i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i><i class="fas fa-star text-xs"></i>
+          </div>
+          <p class="font-display text-lg leading-snug mb-4">"I live in a small apartment and FindAPaw helped me find Pip, a quiet senior cat who just wanted a sunny window. We're both happier."</p>
+          <div class="flex items-center gap-3">
+            <img src="https://picsum.photos/seed/person3port/80/80.jpg" alt="" class="w-10 h-10 rounded-full object-cover">
+            <div>
+              <div class="font-semibold text-sm">Maya Chen</div>
+              <div class="text-xs text-[var(--muted)]">Adopted Pip · 3 months ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Adoption Form -->
+<section id="adopt" class="py-24 px-6 bg-[var(--bg-alt)] relative z-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid lg:grid-cols-5 gap-12 items-start">
+      <div class="lg:col-span-2 reveal">
+        <div class="paw-divider mb-4 max-w-xs">
+          <span class="text-xs uppercase tracking-widest font-semibold">Adoption Application</span>
+        </div>
+        <h2 class="font-display text-5xl md:text-6xl font-bold leading-none mb-6">
+          Let's start<br>
+          the <em class="italic font-light text-[var(--accent)]">conversation</em>
+        </h2>
+        <p class="text-[var(--muted)] leading-relaxed mb-8">
+          Tell us a bit about yourself and we'll connect you with pets that match your home and lifestyle. Our team responds within 24 hours.
+        </p>
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-[var(--accent-light)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-shield-heart text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm">No commitment</div>
+              <div class="text-xs text-[var(--muted)]">Apply without obligation to adopt</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-[var(--accent-light)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-clock text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm">24-hour response</div>
+              <div class="text-xs text-[var(--muted)]">Real humans, real quick</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-[var(--accent-light)] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-heart text-[var(--accent)]"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-sm">Lifetime support</div>
+              <div class="text-xs text-[var(--muted)]">We're here long after adoption day</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 reveal">
+        <form id="adoptionForm" class="bg-white rounded-3xl p-8 md:p-10 border border-[var(--border)] shadow-xl" novalidate>
+          <div class="mb-6">
+            <label for="fullName" class="block text-sm font-semibold mb-2">Full Name <span class="text-[var(--accent)]">*</span></label>
+            <input type="text" id="fullName" name="fullName" required class="form-input w-full px-4 py-3 rounded-xl" placeholder="Jamie Rivera">
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label for="email" class="block text-sm font-semibold mb-2">Email Address <span class="text-[var(--accent)]">*</span></label>
+              <input type="email" id="email" name="email" required class="form-input w-full px-4 py-3 rounded-xl" placeholder="jamie@example.com">
+            </div>
+            <div>
+              <label for="phone" class="block text-sm font-semibold mb-2">Phone Number <span class="text-[var(--accent)]">*</span></label>
+              <input type="tel" id="phone" name="phone" required class="form-input w-full px-4 py-3 rounded-xl" placeholder="(555) 234-5678">
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-3">Home Type <span class="text-[var(--accent)]">*</span></label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="home-option">
+                <input type="radio" name="homeType" value="house" required class="sr-only">
+                <div class="home-card rounded-xl p-4 flex items-center gap-3">
+                  <div class="home-icon w-12 h-12 rounded-lg bg-[var(--accent-light)] flex items-center justify-center text-[var(--accent)]">
+                    <i class="fas fa-house text-xl"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-sm">House</div>
+                    <div class="text-xs text-[var(--muted)]">Stand-alone</div>
+                  </div>
+                </div>
+              </label>
+              <label class="home-option">
+                <input type="radio" name="homeType" value="apartment" class="sr-only">
+                <div class="home-card rounded-xl p-4 flex items-center gap-3">
+                  <div class="home-icon w-12 h-12 rounded-lg bg-[var(--accent-light)] flex items-center justify-center text-[var(--accent)]">
+                    <i class="fas fa-building text-xl"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-sm">Apartment</div>
+                    <div class="text-xs text-[var(--muted)]">Multi-unit</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <label for="message" class="block text-sm font-semibold mb-2">Why do you want to adopt? <span class="text-[var(--accent)]">*</span></label>
+            <textarea id="message" name="message" rows="5" required class="form-input w-full px-4 py-3 rounded-xl resize-none" placeholder="Tell us about your home, lifestyle, and what kind of companion you're hoping to find..."></textarea>
+            <div class="text-xs text-[var(--muted)] mt-2 flex items-center gap-2">
+              <i class="fas fa-circle-info"></i>
+              <span>Be specific — this helps us match you with the right pet</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary w-full py-4 rounded-xl font-semibold text-lg">
+            <span class="flex items-center justify-center gap-3">
+              Submit Application
+              <i class="fas fa-paw"></i>
+            </span>
+          </button>
+
+          <p class="text-xs text-[var(--muted)] text-center mt-4">
+            By submitting, you agree to our adoption terms. We'll never share your info.
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-[var(--fg)] text-[var(--bg)] py-16 px-6 relative z-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-4 gap-8 mb-12">
+      <div class="md:col-span-2">
+        <a href="#" class="flex items-center gap-2 mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--accent)]">
+            <path d="M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z"/>
+          </svg>
+          <span class="font-display text-2xl font-bold">FindAPaw</span>
+        </a>
+        <p class="text-sm opacity-70 max-w-sm leading-relaxed">Connecting loving families with pets in need since 2017. Every adoption creates space for another animal to be saved.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold text-sm mb-4 uppercase tracking-wider opacity-60">Explore</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#pets" class="hover:text-[var(--accent)] transition">Browse Pets</a></li>
+          <li><a href="#how" class="hover:text-[var(--accent)] transition">How it Works</a></li>
+          <li><a href="#stories" class="hover:text-[var(--accent)] transition">Stories</a></li>
+          <li><a href="#adopt" class="hover:text-[var(--accent)] transition">Adopt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold text-sm mb-4 uppercase tracking-wider opacity-60">Get in Touch</h4>
+        <ul class="space-y-2 text-sm">
+          <li>hello@findapaw.com</li>
+          <li>1-800-PAW-HOME</li>
+          <li class="flex gap-3 pt-2">
+            <a href="#" class="w-9 h-9 rounded-full bg-white/10 hover:bg-[var(--accent)] transition flex items-center justify-center"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="w-9 h-9 rounded-full bg-white/10 hover:bg-[var(--accent)] transition flex items-center justify-center"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="w-9 h-9 rounded-full bg-white/10 hover:bg-[var(--accent)] transition flex items-center justify-center"><i class="fab fa-facebook-f"></i></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/10 pt-8 flex flex-wrap justify-between gap-4 text-xs opacity-50">
+      <div>© 2024 FindAPaw. All rights reserved.</div>
+      <div>Made with <i class="fas fa-heart text-[var(--accent)]"></i> for every paw</div>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-circle-check text-xl text-[var(--accent-light)]"></i>
+    <div>
+      <div class="font-semibold">Application received!</div>
+      <div class="text-sm opacity-90">We'll be in touch within 24 hours.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // -------- Pet data --------
+  const pets = [
+    { name: 'Mochi', type: 'dog', breed: 'Shiba Inu', age: '2 yrs', gender: 'Female', tags: ['Playful', 'Loyal'], location: 'Portland, OR', seed: 'mochishiba' },
+    { name: 'Biscuit', type: 'cat', breed: 'Domestic Shorthair', age: '4 yrs', gender: 'Male', tags: ['Cuddly', 'Quiet'], location: 'Seattle, WA', seed: 'biscuitcat' },
+    { name: 'Hazel', type: 'dog', breed: 'Labrador Mix', age: '3 yrs', gender: 'Female', tags: ['Energetic', 'Friendly'], location: 'Austin, TX', seed: 'hazellab' },
+    { name: 'Pepper', type: 'cat', breed: 'Tortoiseshell', age: '5 yrs', gender: 'Female', tags: ['Independent', 'Sweet'], location: 'Denver, CO', seed: 'peppertort' },
+    { name: 'Waffle', type: 'dog', breed: 'Beagle Mix', age: '1 yr', gender: 'Male', tags: ['Curious', 'Fun'], location: 'Chicago, IL', seed: 'wafflebeagle' },
+    { name: 'Olive', type: 'cat', breed: 'Russian Blue', age: '3 yrs', gender: 'Female', tags: ['Gentle', 'Smart'], location: 'Boston, MA', seed: 'oliveblue' },
+  ];
+
+  const pawSvgPath = 'M12 14c-2.5 0-5 2-5 4.5 0 1.4.9 2.5 2.5 2.5h5c1.6 0 2.5-1.1 2.5-2.5 0-2.5-2.5-4.5-5-4.5zm-5.5-2.5c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zm11 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3zM9 7.5C7.6 7.5 6.5 6.2 6.5 4.5S7.6 1.5 9 1.5s2.5 1.3 2.5 3S10.4 7.5 9 7.5zm6 0c-1.4 0-2.5-1.3-2.5-3s1.1-3 2.5-3 2.5 1.3 2.5 3-1.1 3-2.5 3z';
+
+  // -------- Render pet cards --------
+  const petsGrid = document.getElementById('petsGrid');
+  function renderPets(filter = 'all') {
+    const filtered = filter === 'all' ? pets : pets.filter(p => p.type === filter);
+    petsGrid.innerHTML = filtered.map((p, i) => `
+      <article class="pet-card bg-white rounded-3xl overflow-hidden border border-[var(--border)] cursor-pointer" style="animation: fadeInUp 0.6s ${i * 0.08}s both;">
+        <div class="pet-img-wrap aspect-square">
+          <img src="https://picsum.photos/seed/${p.seed}/500/500.jpg" alt="${p.name}" class="pet-img w-full h-full object-cover">
+          <div class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur rounded-full text-xs font-semibold capitalize">${p.type}</div>
+          <button class="absolute top-4 right-4 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-[var(--accent)] hover:text-white transition" aria-label="Save ${p.name}">
+            <i class="far fa-heart text-sm"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="flex items-baseline justify-between mb-1">
+            <h3 class="font-display text-2xl font-bold">${p.name}</h3>
+            <span class="text-xs text-[var(--muted)]">${p.age} · ${p.gender}</span>
+          </div>
+          <div class="text-sm text-[var(--muted)] mb-3">${p.breed}</div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            ${p.tags.map(t => `<span class="text-xs px-2 py-1 rounded-full bg-[var(--bg-alt)] text-[var(--fg)] font-medium">${t}</span>`).join('')}
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t border-[var(--border)]">
+            <div class="text-xs text-[var(--muted)] flex items-center gap-1">
+              <i class="fas fa-location-dot text-[var(--accent)]"></i> ${p.location}
+            </div>
+            <a href="#adopt" class="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-dark)] flex items-center gap-1">
+              Adopt <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+    `).join('');
+  }
+  renderPets();
+
+  // -------- Filter buttons --------
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.className = 'filter-btn px-5 py-2.5 rounded-full border border-[var(--border)] text-sm font-medium hover:border-[var(--accent)] transition';
+      });
+      btn.className = 'filter-btn px-5 py-2.5 rounded-full bg-[var(--fg)] text-white text-sm font-medium transition';
+      renderPets(btn.dataset.filter);
+    });
+  });
+
+  // -------- Floating paws background --------
+  const pawBg = document.getElementById('pawBg');
+  const pawSvgStr = `<svg viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%"><path d="${pawSvgPath}"/></svg>`;
+  for (let i = 0; i < 14; i++) {
+    const paw = document.createElement('div');
+    paw.className = 'paw';
+    paw.innerHTML = pawSvgStr;
+    paw.style.left = Math.random() * 100 + '%';
+    paw.style.animationDelay = (Math.random() * 22) + 's';
+    paw.style.animationDuration = (16 + Math.random() * 12) + 's';
+    const size = 22 + Math.random() * 36;
+    paw.style.width = size + 'px';
+    paw.style.height = size + 'px';
+    pawBg.appendChild(paw);
+  }
+
+  // -------- Cursor paw trail --------
+  let lastPawTime = 0;
+  document.addEventListener('mousemove', (e) => {
+    const now = Date.now();
+    if (now - lastPawTime < 120) return;
+    lastPawTime = now;
+    const paw = document.createElement('div');
+    paw.className = 'cursor-paw';
+    paw.innerHTML = pawSvgStr;
+    paw.style.left = (e.clientX - 10) + 'px';
+    paw.style.top = (e.clientY - 10) + 'px';
+    paw.style.width = '18px';
+    paw.style.height = '18px';
+    paw.style.opacity = '0.5';
+    document.body.appendChild(paw);
+    requestAnimationFrame(() => {
+      paw.style.opacity = '0';
+      paw.style.transform = `translateY(16px) rotate(${Math.random() * 80 - 40}deg) scale(0.6)`;
+    });
+    setTimeout(() => paw.remove(), 700);
+  });
+
+  // -------- Stat counter animation --------
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target);
+    const duration = 2200;
+    const start = performance.now();
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(target * eased).toLocaleString();
+      if (progress < 1) requestAnimationFrame(update);
+      else el.textContent = target.toLocaleString();
+    }
+    requestAnimationFrame(update);
+  }
+
+  // -------- Scroll reveal + counters --------
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        entry.target.querySelectorAll('.stat-number').forEach(el => {
+          if (!el.dataset.animated) {
+            el.dataset.animated = 'true';
+            animateCounter(el);
+          }
+        });
+        if (entry.target.classList.contains('stat-number') && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          animateCounter(entry.target);
+        }
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal, .stat-number').forEach(el => observer.observe(el));
+
+  // -------- Form submission --------
+  const form = document.getElementById('adoptionForm');
+  const toast = document.getElementById('toast');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // HTML5 validation
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    console.log('Adoption application submitted:', data);
+
+    // Show toast
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4500);
+
+    // Reset form
+    form.reset();
+    // Remove checked visual state on home cards
+    document.querySelectorAll('.home-card').forEach(c => c.blur());
+  });
+
+  // -------- Smooth scroll for anchor links --------
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
