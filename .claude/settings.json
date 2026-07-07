@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(i['path']\\) for i in data.get\\('tree',[]\\) if i['type']=='blob']\")",
+      "WebFetch(domain:github.com)",
+      "Skill(code-review)",
+      "Skill(code-review:*)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" remote -v)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" log --oneline -5)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" remote add benchmark https://github.com/aadorian/benchmark.git)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" add evaluation.md)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" status)",
+      "Bash(git -C '/Users/user/Desktop/untitled folder' commit -m ' *)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" push benchmark main)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" log -1 --format=\"%H%nauthor: %an <%ae>%ncommitter: %cn <%ce>%n%B\")",
+      "Bash(git -C '/Users/user/Desktop/untitled folder' commit --amend -m ' *)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" push benchmark main --force)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" log --format=\"%H %s\")",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" log --format=\"%H%n%B---\")",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" add HeuristicEvaluation.md)",
+      "Bash(git -C '/Users/user/Desktop/untitled folder' commit -m 'docs: add Nielsen 10 heuristics usability evaluation for FindAPaw *)",
+      "Bash(git remote *)"
+    ]
+  }
+}
