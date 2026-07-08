@@ -5,11 +5,24 @@
   "version": "0.1.0",
   "publisher": "findapaw",
   "license": "MIT",
-  "engines": { "vscode": "^1.74.0" },
-  "categories": ["Linters", "Education", "Other"],
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Linters",
+    "Education",
+    "Other"
+  ],
   "keywords": [
-    "usability", "ux", "nielsen", "heuristics",
-    "accessibility", "wcag", "linter", "html", "ui-review"
+    "usability",
+    "ux",
+    "nielsen",
+    "heuristics",
+    "accessibility",
+    "wcag",
+    "linter",
+    "html",
+    "ui-review"
   ],
   "icon": "icon.png",
   "galleryBanner": {
@@ -18,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/findapaw/nielsen-heuristics-vscode.git"
+    "url": "git+https://github.com/findapaw/nielsen-heuristics-vscode.git"
   },
   "bugs": {
     "url": "https://github.com/findapaw/nielsen-heuristics-vscode/issues"
@@ -110,5 +123,10 @@
         }
       }
     }
-  }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "type": "commonjs"
 }
