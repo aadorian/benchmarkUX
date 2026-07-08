@@ -1,0 +1,85 @@
+{
+  "name": "nielsen-heuristics",
+  "displayName": "Nielsen Heuristics — Usability Violation Highlighter",
+  "description": "Highlights usability violations in HTML/CSS/JS files based on Nielsen's 10 heuristics. Run a review to get inline diagnostics and a scored report panel.",
+  "version": "0.1.0",
+  "publisher": "findapaw",
+  "engines": { "vscode": "^1.74.0" },
+  "categories": ["Linters", "Other"],
+  "icon": "icon.png",
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:css",
+    "onLanguage:javascript",
+    "onCommand:nielsen.reviewFile",
+    "onCommand:nielsen.reviewSelection"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "nielsen.reviewFile",
+        "title": "Nielsen: Review File for Usability Violations",
+        "category": "Nielsen"
+      },
+      {
+        "command": "nielsen.reviewSelection",
+        "title": "Nielsen: Review Selected Code",
+        "category": "Nielsen"
+      },
+      {
+        "command": "nielsen.clearDiagnostics",
+        "title": "Nielsen: Clear All Diagnostics",
+        "category": "Nielsen"
+      },
+      {
+        "command": "nielsen.showReport",
+        "title": "Nielsen: Show Report Panel",
+        "category": "Nielsen"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "nielsen.reviewFile",
+        "key": "ctrl+shift+u",
+        "mac": "cmd+shift+u",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "nielsen.reviewSelection",
+        "key": "ctrl+shift+alt+u",
+        "mac": "cmd+shift+alt+u",
+        "when": "editorHasSelection"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "nielsen.reviewFile",
+          "group": "nielsen@1",
+          "when": "resourceLangId =~ /html|css|javascript/"
+        },
+        {
+          "command": "nielsen.reviewSelection",
+          "group": "nielsen@2",
+          "when": "editorHasSelection && resourceLangId =~ /html|css|javascript/"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Nielsen Heuristics",
+      "properties": {
+        "nielsen.reviewOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run the Nielsen review when a HTML/CSS/JS file is saved."
+        },
+        "nielsen.showReportPanel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the report panel automatically after a review."
+        }
+      }
+    }
+  }
+}
