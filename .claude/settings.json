@@ -19,7 +19,11 @@
       "Bash(git -C \"/Users/user/Desktop/untitled folder\" log --format=\"%H%n%B---\")",
       "Bash(git -C \"/Users/user/Desktop/untitled folder\" add HeuristicEvaluation.md)",
       "Bash(git -C '/Users/user/Desktop/untitled folder' commit -m 'docs: add Nielsen 10 heuristics usability evaluation for FindAPaw *)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(git -C \"/Users/user/Desktop/untitled folder\" show HEAD:.skills/SKILLS.md)",
+      "Bash(node -e \"require\\('./extension.js'\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node --check \"/Users/user/Desktop/untitled folder/nielsen-heuristics-vscode/extension.js\")"
     ]
   }
 }

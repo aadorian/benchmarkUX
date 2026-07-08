@@ -1,23 +1,32 @@
-# SKILL: Generate Best UX/UI According to Nielsen's 10 Heuristics
+# SKILL: Nielsen's 10 Usability Heuristics — Review & Violation Highlighter
 
-Use this document as a checklist and prompt guide when designing or generating any web interface.
-For each heuristic, follow the mandatory rules, apply the implementation patterns, and verify against the acceptance criteria before shipping.
+## Skill name: `nielsen-review`
+
+Invoke with `/nielsen-review` (optionally with a file path or paste code directly).
+If code is selected in the editor, Claude will analyse the selection.
+If no target is provided, Claude will scan all HTML/CSS/JS files in the project.
 
 ---
 
-## How to Use This Skill
+## How Claude Runs This Skill
 
-When generating or reviewing a UI, run through all 10 heuristics in order.
-For each one, ask: **"Does this interface satisfy this principle? If not, what is the minimum change that fixes it?"**
+1. **Identify the target** — selected code, named file, or full project.
+2. **Run through all 10 heuristics in order** (H1–H10).
+3. **For each heuristic, report one of three statuses:**
+   - ✅ **PASS** — fully satisfied
+   - ⚠️ **MINOR** — partially satisfied; gap is noted
+   - ❌ **VIOLATION** — rule is broken; exact location + fix is given
+4. **Output a Violation Summary** table at the end, sorted by severity.
+5. **Score the design** on the 1–5 scale per heuristic; total out of 50.
 
-Score each heuristic 1–5:
-- **5** — Fully satisfied, no gaps
-- **4** — Satisfied with minor gaps
-- **3** — Partially satisfied
-- **2** — Significant violations present
-- **1** — Severely violates this heuristic
+### Violation Report Format (use for every ❌ / ⚠️)
 
-A total score below 35/50 signals the design needs revision before handoff.
+```
+❌ H[N] — [Short violation title]
+   Where:  <file>:<line> or <element description>
+   Rule:   [The specific rule that is broken]
+   Fix:    [Concrete, minimal change to fix it]
+```
 
 ---
 
@@ -26,44 +35,21 @@ A total score below 35/50 signals the design needs revision before handoff.
 > Always keep users informed about what is going on, through appropriate feedback within reasonable time.
 
 ### Rules
-- Every user action must produce visible feedback within 100ms.
-- Long operations (>1s) must show a loading indicator.
+- Every user action must produce visible feedback within 100 ms.
+- Long operations (>1 s) must show a loading indicator.
 - Form submissions must show a success or error state — never reset silently.
 - Active navigation items must be visually distinguished from inactive ones.
 - If content is loading asynchronously, show a skeleton or spinner — never a blank area.
 
-### Implementation Patterns
-```html
-<!-- Button loading state -->
-<button id="submitBtn" type="submit">
-  <span class="btn-label">Submit</span>
-  <span class="btn-spinner" hidden aria-hidden="true">…</span>
-</button>
-
-<!-- On submit -->
-submitBtn.disabled = true;
-submitBtn.querySelector('.btn-label').hidden = true;
-submitBtn.querySelector('.btn-spinner').hidden = false;
-```
-
-```css
-/* Active nav link */
-nav a[aria-current="page"] {
-  color: var(--accent);
-  border-bottom: 2px solid var(--accent);
-}
-
-/* Skeleton loader */
-.skeleton {
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-```
+### Violation Signals (what to look for)
+- `<button>` with no `disabled` toggle and no loading indicator on click handler
+- `form.submit()` / `fetch(…).then(…)` with no UI update after resolution
+- `<a>` / `<button>` nav items with no `.active`, `aria-current="page"`, or equivalent
+- `async` functions that set data without showing a loader first
+- Empty `<div>` containers that populate via JS with no placeholder
 
 ### Acceptance Criteria
-- [ ] Clicking any button produces visible feedback within 100ms
+- [ ] Clicking any button produces visible feedback within 100 ms
 - [ ] Form submit shows a success message or toast
 - [ ] Submit button disables during processing
 - [ ] Current page/section is highlighted in navigation
@@ -79,26 +65,15 @@ nav a[aria-current="page"] {
 - Use domain vocabulary, not technical vocabulary (e.g., "Your Order" not "Transaction ID 8821").
 - Icons must be universally understood or paired with a label.
 - Date/time formats must match the user's locale.
-- Error messages must be written in plain language — no stack traces, no HTTP codes exposed to users.
+- Error messages must be in plain language — no stack traces, no HTTP codes exposed to users.
 - CTAs must describe the outcome, not the action (e.g., "Find a Pet" not "Submit Query").
 
-### Implementation Patterns
-```html
-<!-- Bad: technical label -->
-<label for="tel">User Contact String</label>
-
-<!-- Good: natural language -->
-<label for="tel">Phone Number</label>
-
-<!-- Outcome-oriented CTA -->
-<button type="submit">Find My Perfect Pet →</button>
-
-<!-- Icon always paired with text -->
-<button aria-label="Save to favourites">
-  <svg aria-hidden="true">…heart icon…</svg>
-  Save
-</button>
-```
+### Violation Signals (what to look for)
+- Labels like "User ID", "Record", "Entity", "POST", "NULL", "undefined"
+- `<img>` / `<svg>` with no `aria-label` and no adjacent text
+- `console.error()` or raw `error.message` rendered into the DOM
+- Button text: "Submit", "Send", "Execute", "Process", "OK"
+- `new Date().toISOString()` displayed directly to users
 
 ### Acceptance Criteria
 - [ ] No technical jargon visible to end users
@@ -119,33 +94,12 @@ nav a[aria-current="page"] {
 - Navigation must always be accessible — no page should be a dead end.
 - On mobile, a hamburger menu or bottom nav must replace hidden desktop nav.
 
-### Implementation Patterns
-```html
-<!-- Mobile hamburger menu -->
-<button id="menuToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">
-  <svg aria-hidden="true">…hamburger icon…</svg>
-</button>
-<nav id="mobileNav" hidden>…links…</nav>
-
-<script>
-  menuToggle.addEventListener('click', () => {
-    const open = menuToggle.getAttribute('aria-expanded') === 'true';
-    menuToggle.setAttribute('aria-expanded', String(!open));
-    mobileNav.hidden = open;
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { mobileNav.hidden = true; menuToggle.setAttribute('aria-expanded', 'false'); }
-  });
-</script>
-
-<!-- Undo toast -->
-<div role="status" aria-live="polite" class="toast">
-  Application submitted. <button onclick="undoSubmit()">Undo</button>
-</div>
-
-<!-- Form reset -->
-<button type="reset">Clear Form</button>
-```
+### Violation Signals (what to look for)
+- `dialog` / `.modal` with no `keydown Escape` listener and no close `<button>`
+- `<form>` with no `type="reset"` button or equivalent clear action
+- Delete/remove handlers with no `confirm()` or undo toast
+- `@media (max-width: …) { nav { display: none } }` with no mobile replacement
+- Links that go to `href="#"` with no meaningful action
 
 ### Acceptance Criteria
 - [ ] Mobile screens have a working navigation menu (hamburger or bottom bar)
@@ -162,48 +116,17 @@ nav a[aria-current="page"] {
 
 ### Rules
 - Define and use a single set of design tokens (colors, spacing, radius, typography).
-- The same action must always use the same label (e.g., never mix "Submit" and "Send" for the same action).
-- Button hierarchy must be consistent: primary → secondary → ghost, in that order of visual weight.
+- The same action must always use the same label.
+- Button hierarchy must be consistent: primary → secondary → ghost.
 - Hover and focus states must be consistent across all interactive elements.
 - Page layout sections must follow a predictable pattern.
 
-### Implementation Patterns
-```css
-/* Design token system — define once, use everywhere */
-:root {
-  --color-primary: #D2603A;
-  --color-primary-dark: #B14A28;
-  --color-text: #2B1810;
-  --color-text-muted: #6B5444;
-  --color-bg: #FAF3E3;
-  --color-border: #E8D9B8;
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-full: 9999px;
-
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 32px;
-  --space-xl: 64px;
-
-  --font-body: 'Plus Jakarta Sans', sans-serif;
-  --font-display: 'Fraunces', serif;
-}
-
-/* Consistent button hierarchy */
-.btn-primary   { background: var(--color-primary); color: white; }
-.btn-secondary { background: transparent; border: 2px solid var(--color-primary); color: var(--color-primary); }
-.btn-ghost     { background: transparent; color: var(--color-primary); text-decoration: underline; }
-
-/* Consistent focus ring — apply to ALL interactive elements */
-:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
-  border-radius: var(--radius-sm);
-}
-```
+### Violation Signals (what to look for)
+- Hardcoded hex values outside `:root` / a token file
+- Same action labelled differently on different pages ("Submit" vs "Send" vs "Apply")
+- `:focus` / `:focus-visible` missing from one or more interactive element types
+- Inconsistent border-radius, padding, or font-size across similar components
+- Primary button used for a low-priority action beside a ghost button for a high-priority one
 
 ### Acceptance Criteria
 - [ ] All colors reference design tokens — no hardcoded hex values outside `:root`
@@ -221,53 +144,16 @@ nav a[aria-current="page"] {
 ### Rules
 - Constrain inputs to valid values wherever possible (radio cards instead of free-text, date pickers instead of date strings).
 - Provide inline format hints via `placeholder` and `pattern`.
-- Disable submit until required fields are valid (or validate eagerly on blur).
-- Confirm before any irreversible action (delete, submit final form).
-- Use `type="email"`, `type="tel"`, `type="number"` etc. to leverage built-in browser constraints.
+- Disable submit until required fields are valid, or validate eagerly on blur.
+- Confirm before any irreversible action.
+- Use `type="email"`, `type="tel"`, `type="number"` to leverage built-in browser constraints.
 
-### Implementation Patterns
-```html
-<!-- Phone with pattern -->
-<input
-  type="tel"
-  id="phone"
-  name="phone"
-  pattern="[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}"
-  placeholder="(555) 234-5678"
-  aria-describedby="phone-hint"
-  required
->
-<span id="phone-hint" class="field-hint">Format: (555) 234-5678</span>
-
-<!-- Textarea with min length -->
-<textarea
-  id="message"
-  minlength="30"
-  maxlength="1000"
-  required
-  aria-describedby="message-hint"
-></textarea>
-<span id="message-hint" class="field-hint">Minimum 30 characters</span>
-
-<!-- Visual radio cards instead of <select> for binary choices -->
-<fieldset>
-  <legend>Home Type</legend>
-  <label class="radio-card">
-    <input type="radio" name="homeType" value="house" required class="sr-only">
-    <span class="radio-card__body">
-      <svg aria-hidden="true">…house icon…</svg>
-      House
-    </span>
-  </label>
-  <label class="radio-card">
-    <input type="radio" name="homeType" value="apartment" class="sr-only">
-    <span class="radio-card__body">
-      <svg aria-hidden="true">…building icon…</svg>
-      Apartment
-    </span>
-  </label>
-</fieldset>
-```
+### Violation Signals (what to look for)
+- `<input type="text">` used for email, phone, or date
+- Phone / postcode fields with no `pattern` attribute
+- `<select>` with only 2 options (should be radio cards)
+- `<textarea>` with no `minlength` / `maxlength`
+- Submit handler that doesn't validate before `fetch()`
 
 ### Acceptance Criteria
 - [ ] Phone fields have a `pattern` attribute
@@ -286,40 +172,15 @@ nav a[aria-current="page"] {
 - All form labels must be persistently visible — never label-as-placeholder-only.
 - Navigation must be visible at all times (sticky header or always-accessible bottom bar).
 - Show all available filter/sort options simultaneously — never hide them behind a click.
-- Show content previews (pet cards, thumbnails) so users can recognise what they want.
+- Show content previews (cards, thumbnails) so users can recognise what they want.
 - Required fields must be visually marked (asterisk + legend).
 
-### Implementation Patterns
-```html
-<!-- Persistent label — NEVER use placeholder as the only label -->
-<div class="field">
-  <label for="fullName">
-    Full Name <span aria-label="required" class="required-mark">*</span>
-  </label>
-  <input type="text" id="fullName" name="fullName" placeholder="Jamie Rivera" required>
-</div>
-
-<!-- Always-visible filter tabs -->
-<div role="group" aria-label="Filter pets by type">
-  <button class="filter-btn active" data-filter="all" aria-pressed="true">All Pets</button>
-  <button class="filter-btn" data-filter="dog" aria-pressed="false">Dogs</button>
-  <button class="filter-btn" data-filter="cat" aria-pressed="false">Cats</button>
-</div>
-
-<!-- Required field legend -->
-<p class="form-legend"><span aria-hidden="true">*</span> Required fields</p>
-```
-
-```css
-/* Sticky navigation */
-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(12px);
-  background: rgba(255,255,255,0.85);
-}
-```
+### Violation Signals (what to look for)
+- `<input placeholder="Name">` with no `<label>` — placeholder is the only label
+- `position: sticky` / `position: fixed` absent from the main navigation
+- Filter options inside a `<details>` / dropdown that require a click to reveal
+- List of items that shows only names with no image, summary, or preview
+- `required` fields with no visual indicator (no `*`, no colour, no legend)
 
 ### Acceptance Criteria
 - [ ] All form labels are always visible (not replaced by placeholders)
@@ -336,51 +197,17 @@ header {
 
 ### Rules
 - Provide anchor links so users can jump directly to any section.
-- CTAs within content (e.g., "Adopt" on a pet card) must deep-link to the relevant action.
-- Support keyboard navigation for all interactive elements.
+- CTAs within content must deep-link to the relevant action.
+- Support full keyboard navigation for all interactive elements.
 - Filtering and sorting should update results without a page reload.
 - Consider a "back to top" button for long pages.
 
-### Implementation Patterns
-```html
-<!-- Section anchor IDs -->
-<section id="pets">…</section>
-<section id="adopt">…</section>
-
-<!-- Nav with anchor links + smooth scroll -->
-<nav>
-  <a href="#pets">Browse Pets</a>
-  <a href="#how">How it Works</a>
-  <a href="#adopt">Adopt</a>
-</nav>
-
-<!-- Back to top -->
-<button id="backToTop" aria-label="Back to top" hidden>↑ Top</button>
-
-<script>
-  /* Smooth scroll */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    });
-  });
-
-  /* Back to top visibility */
-  const backToTop = document.getElementById('backToTop');
-  window.addEventListener('scroll', () => { backToTop.hidden = window.scrollY < 400; });
-  backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-
-  /* Filter without reload */
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
-      btn.setAttribute('aria-pressed', 'true');
-      renderPets(btn.dataset.filter);
-    });
-  });
-</script>
-```
+### Violation Signals (what to look for)
+- Sections with no `id` attribute and no corresponding anchor in the nav
+- `a[href^="#"]` without smooth-scroll behaviour
+- Filter buttons that reload the page or call `location.reload()`
+- `<div onclick="…">` used instead of `<button>` (not keyboard-accessible)
+- Long pages (>3 screens) with no back-to-top affordance
 
 ### Acceptance Criteria
 - [ ] All major sections have `id` anchors and matching nav links
@@ -396,42 +223,18 @@ header {
 > Avoid irrelevant or rarely needed information. Every extra unit of information competes with relevant information.
 
 ### Rules
-- Each section must have a single, clear purpose — no section tries to do two things.
+- Each section must have a single, clear purpose.
 - Decorative animations must respect `prefers-reduced-motion`.
-- Background effects (particles, gradients, textures) must not interfere with text legibility.
-- Use whitespace deliberately — generous padding increases perceived quality and reduces cognitive load.
+- Background effects must not interfere with text legibility.
+- Use whitespace deliberately — generous padding increases perceived quality.
 - Limit the color palette to 1 primary accent, 1 secondary, and 2–3 neutrals.
 
-### Implementation Patterns
-```css
-/* Always respect reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Minimal color palette */
-:root {
-  --color-accent: #D2603A;      /* one primary accent */
-  --color-secondary: #3D5A3D;   /* one secondary */
-  --color-text: #2B1810;        /* body text */
-  --color-text-muted: #6B5444;  /* secondary text */
-  --color-bg: #FAF3E3;          /* page background */
-}
-
-/* Generous whitespace */
-section { padding: 80px 24px; }
-.card   { padding: 32px; }
-.field  { margin-bottom: 24px; }
-```
-
-```html
-<!-- Decorative element: aria-hidden + pointer-events none -->
-<div class="bg-animation" aria-hidden="true" style="pointer-events:none"></div>
-```
+### Violation Signals (what to look for)
+- `@keyframes` / `animation:` with no `@media (prefers-reduced-motion: reduce)` override
+- Decorative `<div>` / `<canvas>` elements that lack `aria-hidden="true"`
+- Text rendered over a busy background image without a contrast overlay
+- More than 3 distinct accent colors across the page
+- Sections with two unrelated content blocks merged together
 
 ### Acceptance Criteria
 - [ ] All animations are disabled when `prefers-reduced-motion: reduce` is set
@@ -447,81 +250,18 @@ section { padding: 80px 24px; }
 > Error messages should be expressed in plain language, precisely indicate the problem, and constructively suggest a solution.
 
 ### Rules
-- Never use browser-native validation bubbles alone — always add custom inline error messages.
+- Never rely on browser-native validation bubbles alone — always add custom inline error messages.
 - Error messages must appear adjacent to the field that caused them.
 - Fields with errors must have a visible error state (red border + icon) AND an ARIA-linked message.
 - Error messages must say what went wrong AND how to fix it.
 - On form-level errors, move focus to the first invalid field.
 
-### Implementation Patterns
-```html
-<!-- Field with error state -->
-<div class="field" id="field-email">
-  <label for="email">Email Address <span aria-label="required">*</span></label>
-  <input
-    type="email"
-    id="email"
-    name="email"
-    aria-describedby="email-error"
-    aria-invalid="true"
-    class="input input--error"
-    required
-  >
-  <span id="email-error" class="field-error" role="alert">
-    Please enter a valid email address (e.g. jamie@example.com).
-  </span>
-</div>
-```
-
-```css
-.input--error {
-  border-color: #DC2626;
-  background: #FEF2F2;
-}
-.field-error {
-  color: #DC2626;
-  font-size: 0.875rem;
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.field-error::before {
-  content: '⚠';
-  aria-hidden: true;
-}
-```
-
-```js
-function validateForm(form) {
-  let firstInvalid = null;
-  form.querySelectorAll('[required]').forEach(field => {
-    const error = document.getElementById(field.id + '-error');
-    if (!field.validity.valid) {
-      field.setAttribute('aria-invalid', 'true');
-      field.classList.add('input--error');
-      if (error) error.hidden = false;
-      if (!firstInvalid) firstInvalid = field;
-    } else {
-      field.setAttribute('aria-invalid', 'false');
-      field.classList.remove('input--error');
-      if (error) error.hidden = true;
-    }
-  });
-  if (firstInvalid) firstInvalid.focus();
-  return !firstInvalid;
-}
-
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  if (validateForm(form)) submitForm();
-});
-
-// Validate on blur for early inline feedback
-form.querySelectorAll('[required]').forEach(field => {
-  field.addEventListener('blur', () => validateField(field));
-});
-```
+### Violation Signals (what to look for)
+- `input.reportValidity()` or browser bubbles as the only error feedback
+- Generic messages: "Invalid input", "Error", "Something went wrong"
+- Error text not linked via `aria-describedby` to its field
+- `aria-invalid` attribute never set on invalid fields
+- `form.submit()` that doesn't move focus to the first failing field
 
 ### Acceptance Criteria
 - [ ] No reliance on browser-native validation bubbles
@@ -544,45 +284,12 @@ form.querySelectorAll('[required]').forEach(field => {
 - Use trust signals near conversion points (privacy notice, response time, commitment level).
 - Post-submission, tell the user exactly what happens next.
 
-### Implementation Patterns
-```html
-<!-- Persistent field hint (not placeholder) -->
-<div class="field">
-  <label for="message">Why do you want to adopt? <span aria-label="required">*</span></label>
-  <textarea id="message" name="message" aria-describedby="message-hint" minlength="30" required></textarea>
-  <span id="message-hint" class="field-hint">
-    Be specific — mention your home, lifestyle, and experience with pets. Minimum 30 characters.
-  </span>
-</div>
-
-<!-- Trust signals near CTA -->
-<aside class="trust-signals">
-  <div class="trust-item">
-    <svg aria-hidden="true">…shield icon…</svg>
-    <div>
-      <strong>No commitment</strong>
-      <p>Applying doesn't obligate you to adopt.</p>
-    </div>
-  </div>
-  <div class="trust-item">
-    <svg aria-hidden="true">…clock icon…</svg>
-    <div>
-      <strong>24-hour response</strong>
-      <p>A real person will contact you within a day.</p>
-    </div>
-  </div>
-</aside>
-
-<!-- Post-submission next steps -->
-<div class="success-message" role="status" aria-live="polite">
-  <h3>Application received!</h3>
-  <p>We'll review your application and email you at <strong id="confirmedEmail"></strong> within 24 hours with next steps.</p>
-</div>
-
-<!-- Support contact as links -->
-<a href="mailto:hello@findapaw.com">hello@findapaw.com</a>
-<a href="tel:+18007294663">1-800-PAW-HOME</a>
-```
+### Violation Signals (what to look for)
+- Fields with ambiguous expectations and only a placeholder for guidance
+- Contact links that are plain text (`support@…`) not `<a href="mailto:…">`
+- Adoption / checkout form with no "How it works" section visible above it
+- CTA with no adjacent trust signal (privacy note, no-commitment statement, timeline)
+- Thank-you / success state that gives no next-step information
 
 ### Acceptance Criteria
 - [ ] Every non-obvious field has a persistent hint below it (not just a placeholder)
@@ -594,82 +301,99 @@ form.querySelectorAll('[required]').forEach(field => {
 
 ---
 
-## Full Checklist (Quick Reference)
+## Scoring Rubric
 
-Copy this into your review before shipping any UI:
+Score each heuristic 1–5 after the review:
+
+| Score | Meaning |
+|---|---|
+| 5 | Fully satisfied — no gaps |
+| 4 | Satisfied with minor gaps |
+| 3 | Partially satisfied |
+| 2 | Significant violations present |
+| 1 | Severely violates this heuristic |
+
+| Total | Assessment |
+|---|---|
+| 45–50 | Excellent — ready for production |
+| 35–44 | Good — fix gaps before launch |
+| 25–34 | Fair — significant rework needed |
+| < 25  | Poor — redesign required |
+
+---
+
+## Violation Summary Table (output at end of every review)
+
+Claude must output this table at the end, sorted by severity (❌ first, then ⚠️):
+
+| Severity | Heuristic | Violation | File / Element | Fix |
+|---|---|---|---|---|
+| ❌ | H[N] — [name] | [what's broken] | [file:line or element] | [minimal fix] |
+| ⚠️ | H[N] — [name] | [gap] | [file:line or element] | [suggestion] |
+
+---
+
+## Quick Reference Checklist
 
 ```
-Heuristic 1 — Visibility of System Status
+H1 — Visibility of System Status
 [ ] Button shows spinner/disabled state during processing
 [ ] Form shows success or error after submit
 [ ] Active nav item is visually distinguished
 [ ] No blank loading areas
 
-Heuristic 2 — Match Between System and the Real World
+H2 — Match Between System and the Real World
 [ ] No technical jargon visible to users
 [ ] All icons have labels or aria-labels
 [ ] CTAs describe outcome not action
 
-Heuristic 3 — User Control and Freedom
+H3 — User Control and Freedom
 [ ] Mobile nav is accessible (hamburger or bottom bar)
 [ ] Modals close on Escape
 [ ] Form has reset option
 [ ] No dead-end pages or bare # links
 
-Heuristic 4 — Consistency and Standards
+H4 — Consistency and Standards
 [ ] All colors from design tokens
 [ ] Same action = same label throughout
 [ ] All interactive elements have focus styles
 [ ] Button hierarchy is consistent
 
-Heuristic 5 — Error Prevention
+H5 — Error Prevention
 [ ] Phone has pattern attribute
 [ ] Textarea has minlength/maxlength
 [ ] Binary choices use radio cards not <select>
 [ ] Placeholders show expected format
 
-Heuristic 6 — Recognition Rather Than Recall
+H6 — Recognition Rather Than Recall
 [ ] All form labels persistently visible
 [ ] Required fields marked with * and legend
 [ ] Filter options always visible
 [ ] Navigation always accessible
 
-Heuristic 7 — Flexibility and Efficiency of Use
+H7 — Flexibility and Efficiency of Use
 [ ] Anchor links on all sections
 [ ] Smooth scroll enabled
 [ ] Filters work without page reload
 [ ] Back-to-top button present
 [ ] All interactions keyboard-accessible
 
-Heuristic 8 — Aesthetic and Minimalist Design
+H8 — Aesthetic and Minimalist Design
 [ ] prefers-reduced-motion respected
 [ ] Decorative elements aria-hidden + pointer-events:none
 [ ] Max 2 accent colors
-[ ] Text contrast ≥ 4.5:1 (WCAG AA)
+[ ] Text contrast >= 4.5:1 (WCAG AA)
 
-Heuristic 9 — Help Users Recognize, Diagnose, and Recover from Errors
+H9 — Help Users Recognize, Diagnose, and Recover from Errors
 [ ] No browser-native validation bubbles
 [ ] Inline error per field with aria-invalid + aria-describedby
 [ ] Errors say what went wrong AND how to fix it
 [ ] Focus moves to first invalid field on submit
 
-Heuristic 10 — Help and Documentation
+H10 — Help and Documentation
 [ ] Persistent hints below non-obvious fields
 [ ] How it Works before the form
 [ ] Trust signals near CTA
 [ ] Support contacts are mailto:/tel: links
 [ ] Post-submit message explains next steps
 ```
-
----
-
-## Scoring
-
-After evaluation, calculate:
-
-| Score | Assessment |
-|---|---|
-| 45–50 | Excellent — ready for production |
-| 35–44 | Good — fix gaps before launch |
-| 25–34 | Fair — significant rework needed |
-| < 25 | Poor — redesign required |
