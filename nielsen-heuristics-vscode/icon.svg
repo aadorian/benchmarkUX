@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1E3F"/>
+      <stop offset="100%" stop-color="#0D0D2B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="128" height="128" rx="20" fill="url(#bg)"/>
+
+  <!-- Large N glyph -->
+  <text
+    x="14" y="98"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-weight="900"
+    font-size="96"
+    fill="#FFFFFF"
+    letter-spacing="-4">N</text>
+
+  <!-- 10 badge (top-right) -->
+  <circle cx="97" cy="32" r="24" fill="#E63946"/>
+  <text
+    x="97" y="40"
+    text-anchor="middle"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-weight="800"
+    font-size="22"
+    fill="#FFFFFF">10</text>
+</svg>

@@ -1,12 +1,41 @@
 {
   "name": "nielsen-heuristics",
   "displayName": "Nielsen Heuristics — Usability Violation Highlighter",
-  "description": "Highlights usability violations in HTML/CSS/JS files based on Nielsen's 10 heuristics. Run a review to get inline diagnostics and a scored report panel.",
+  "description": "Highlights usability violations in HTML/CSS/JS files based on Nielsen's 10 heuristics. Get inline diagnostics, a scored report panel, and concrete fix suggestions — without leaving your editor.",
   "version": "0.1.0",
   "publisher": "findapaw",
+  "license": "MIT",
   "engines": { "vscode": "^1.74.0" },
-  "categories": ["Linters", "Other"],
+  "categories": ["Linters", "Education", "Other"],
+  "keywords": [
+    "usability", "ux", "nielsen", "heuristics",
+    "accessibility", "wcag", "linter", "html", "ui-review"
+  ],
   "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1E1E3F",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/findapaw/nielsen-heuristics-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/findapaw/nielsen-heuristics-vscode/issues"
+  },
+  "homepage": "https://github.com/findapaw/nielsen-heuristics-vscode#readme",
+  "badges": [
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/v/findapaw.nielsen-heuristics.svg",
+      "href": "https://marketplace.visualstudio.com/items?itemName=findapaw.nielsen-heuristics",
+      "description": "VS Marketplace Version"
+    },
+    {
+      "url": "https://img.shields.io/visual-studio-marketplace/d/findapaw.nielsen-heuristics.svg",
+      "href": "https://marketplace.visualstudio.com/items?itemName=findapaw.nielsen-heuristics",
+      "description": "VS Marketplace Downloads"
+    }
+  ],
   "activationEvents": [
     "onLanguage:html",
     "onLanguage:css",

@@ -23,7 +23,13 @@
       "Bash(git -C \"/Users/user/Desktop/untitled folder\" show HEAD:.skills/SKILLS.md)",
       "Bash(node -e \"require\\('./extension.js'\\)\")",
       "Bash(node -e ' *)",
-      "Bash(node --check \"/Users/user/Desktop/untitled folder/nielsen-heuristics-vscode/extension.js\")"
+      "Bash(node --check \"/Users/user/Desktop/untitled folder/nielsen-heuristics-vscode/extension.js\")",
+      "Bash(npm --version)",
+      "Bash(node generate-icon.js)",
+      "Bash(npm list *)",
+      "Bash(npm install *)",
+      "Bash(vsce package *)",
+      "Bash(vsce ls *)"
     ]
   }
 }

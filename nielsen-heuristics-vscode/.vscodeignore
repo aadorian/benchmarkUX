@@ -1,0 +1,24 @@
+# Files excluded from the .vsix package
+# Everything NOT listed here (or covered by .gitignore) is bundled into the extension.
+
+.git
+.gitignore
+.github
+*.vsix
+
+# Source assets — only icon.png is needed at runtime
+icon.svg
+generate-icon.js
+
+# Dev / CI
+PUBLISHING.md
+*.sh
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Source maps
+**/*.map
+
+# Node modules (this extension has none, but guard for the future)
+node_modules
